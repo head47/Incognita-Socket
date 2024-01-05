@@ -328,6 +328,7 @@ function stateMultiplayer:receiveData(client,data,line)
 		elseif self:isClient() then
 			if data.focus then
 				self.isFocusedPlayer = true
+				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 				self:updateEndTurnButton()
 			elseif data.plCoun then
 				self.playerCount = data.plCoun
@@ -579,10 +580,11 @@ function stateMultiplayer:yield(playerIndex)
 		else
 			self.focusedPlayerIndex = 0
 			self.isFocusedPlayer = true
+			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 			clientName = self.userName
 		end
 	
-		local action = { name = "yieldTurnAction", clientName, previousFocusedPlayerIndex, self.focusedPlayerIndex, self.isFocusedPlayer }
+		local action = { name = "yieldTurnAction", clientName, previousFocusedPlayerIndex, self.focusedPlayerIndex }
 		
 		if not self:shouldYield() then
 			action.costly = true
@@ -660,10 +662,11 @@ function stateMultiplayer:focusFirstPlayer()
 	else
 		self.focusedPlayerIndex = 0
 		self.isFocusedPlayer = true
+		MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 		clientName = self.userName
 	end
 	
-	local action = { name = "yieldTurnAction", costly = true, clientName, nil, self.focusedPlayerIndex, self.isFocusedPlayer }
+	local action = { name = "yieldTurnAction", costly = true, clientName, nil, self.focusedPlayerIndex }
 	
 	self:sendAction( action )
 	if self:getCurrentGame() then
