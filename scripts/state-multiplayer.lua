@@ -846,6 +846,7 @@ function stateMultiplayer:updateEndTurnButton()
 	if self.game and self.game.hud and self.gameMode == self.GAME_MODES.BACKSTAB then
 		local btn = self.game.hud._screen.binder.endTurnBtn
 		local suffix = ""
+		local tooltip
 
 		if self.autoYield then
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
@@ -853,26 +854,31 @@ function stateMultiplayer:updateEndTurnButton()
 		if self.isFocusedPlayer then
 			if self:shouldYield() then
 				btn:setText(STRINGS.MULTI_MOD.YIELD .. suffix)
-				local tooltip = mui_tooltip(STRINGS.MULTI_MOD.YIELD_TOOLTIP_HEADER, STRINGS.MULTI_MOD.YIELD_TOOLTIP, STRINGS.SCREENS.STR_194569200)
-				btn:setTooltip(tooltip)
+				tooltip = mui_tooltip(STRINGS.MULTI_MOD.YIELD_TOOLTIP_HEADER, STRINGS.MULTI_MOD.YIELD_TOOLTIP, STRINGS.SCREENS.STR_194569200)
 			else
 				btn:setText(STRINGS.SCREENS.STR_3530899842 .. suffix) -- End Turn
-				local tooltip = mui_tooltip(STRINGS.SCREENS.STR_1207454442, STRINGS.SCREENS.STR_610854735, STRINGS.SCREENS.STR_194569200)	-- default tooltip
-				btn:setTooltip(tooltip)
+				tooltip = mui_tooltip(STRINGS.SCREENS.STR_1207454442, STRINGS.SCREENS.STR_610854735, STRINGS.SCREENS.STR_194569200)	-- default tooltip
 			end
 		elseif self.game.simCore and self.game.simCore.currentClientName then
 			btn:setText(string.format(STRINGS.MULTI_MOD.YIELDED_TO, self.game.simCore.currentClientName) .. suffix)
-			local tooltip = mui_tooltip(
-				STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_HEADER,
-				string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP, self.game.simCore.currentClientName),
-				nil		-- do not show hotkey, as it does nothing
-			)
-			btn:setTooltip(tooltip)
+			if self.autoYield then
+				tooltip = mui_tooltip(
+					STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_HEADER,
+					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP, self.game.simCore.currentClientName),
+					STRINGS.SCREENS.STR_194569200
+				)
+			else
+				tooltip = mui_tooltip(
+					STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_HEADER,
+					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),
+					STRINGS.SCREENS.STR_194569200
+				)
+			end
 		else
 			btn:setText(STRINGS.SCREENS.STR_3530899842 .. suffix) -- End Turn
-			local tooltip = mui_tooltip(STRINGS.SCREENS.STR_1207454442, STRINGS.SCREENS.STR_610854735, STRINGS.SCREENS.STR_194569200)	-- default tooltip
-			btn:setTooltip(tooltip)
+			tooltip = mui_tooltip(STRINGS.SCREENS.STR_1207454442, STRINGS.SCREENS.STR_610854735, STRINGS.SCREENS.STR_194569200)	-- default tooltip
 		end
+		btn:setTooltip(tooltip)
 	end
 end
 
