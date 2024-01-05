@@ -67,6 +67,7 @@ local MULTI_MOD = {
 	YIELD_TOOLTIP = "Pass the turn to another player.",
 	YIELDED_TO_TOOLTIP_HEADER = "TURN YIELDED",
 	YIELDED_TO_TOOLTIP = "%s is currently taking their turn. Press to automatically yield until next turn.",
+	AUTOYIELDING_TOOLTIP_HEADER = "AUTOYIELDING",
 	YIELDED_TO_TOOLTIP_AUTOYIELDING = "%s is currently taking their turn. Turn will be automatically yielded until next turn, press to cancel.",
 	AUTOYIELDING_SUFFIX = " <c:F0FF78>(A/Y)</c>",
 	
