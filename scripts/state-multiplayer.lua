@@ -863,14 +863,14 @@ function stateMultiplayer:updateEndTurnButton()
 			btn:setText(string.format(STRINGS.MULTI_MOD.YIELDED_TO, self.game.simCore.currentClientName) .. suffix)
 			if self.autoYield then
 				tooltip = mui_tooltip(
-					STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_HEADER,
-					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP, self.game.simCore.currentClientName),
+					STRINGS.MULTI_MOD.AUTOYIELDING_TOOLTIP_HEADER,
+					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),
 					STRINGS.SCREENS.STR_194569200
 				)
 			else
 				tooltip = mui_tooltip(
 					STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_HEADER,
-					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),
+					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP, self.game.simCore.currentClientName),
 					STRINGS.SCREENS.STR_194569200
 				)
 			end
