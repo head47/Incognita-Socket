@@ -67,6 +67,7 @@ local MULTI_MOD = {
 	YIELD_TOOLTIP = "Pass the turn to another player.",
 	YIELDED_TO_TOOLTIP_HEADER = "TURN YIELDED",
 	YIELDED_TO_TOOLTIP = "%s is currently taking their turn.",
+	AUTOYIELDING_SUFFIX = " <c:F0FF78>(A/Y)</c>",
 	
 	PANEL = {
 		TITLE = "Game Title",
