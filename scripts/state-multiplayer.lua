@@ -328,9 +328,10 @@ function stateMultiplayer:receiveData(client,data,line)
 		elseif self:isClient() then
 			if data.focus then
 				self.isFocusedPlayer = true
-				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 				if self.autoYield then
 					self:yield(self.focusedPlayerIndex)
+				else
+					MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 				end
 				self:updateEndTurnButton()
 			elseif data.plCoun then
@@ -582,7 +583,6 @@ function stateMultiplayer:yield(playerIndex)
 		else
 			self.focusedPlayerIndex = 0
 			self.isFocusedPlayer = true
-			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 			clientName = self.userName
 		end
 	
@@ -608,6 +608,8 @@ function stateMultiplayer:yield(playerIndex)
 		else
 			if self.autoYield then
 				self:yield(self.focusedPlayerIndex)
+			else
+				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 			end
 		end
 	else
@@ -671,7 +673,6 @@ function stateMultiplayer:focusFirstPlayer()
 	else
 		self.focusedPlayerIndex = 0
 		self.isFocusedPlayer = true
-		MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 		clientName = self.userName
 	end
 	
@@ -687,6 +688,8 @@ function stateMultiplayer:focusFirstPlayer()
 	else
 		if self.autoYield then
 			self:yield(self.focusedPlayerIndex)
+		else
+			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 		end
 	end
 end
