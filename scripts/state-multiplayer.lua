@@ -126,7 +126,7 @@ function stateMultiplayer:updatePlayerList()
 		
 		self.playerCount = 1 + #self.uplink.clients
 		self.uplink:send({plCoun = self.playerCount})
-		self:updateEndTurnButton()
+		self:updateHudButtons()
 	else
 		self.screen.binder.playerListHeader:setVisible(false)
 		self.screen.binder.playerList:setVisible(false)
@@ -333,10 +333,10 @@ function stateMultiplayer:receiveData(client,data,line)
 				else
 					MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 				end
-				self:updateEndTurnButton()
+				self:updateHudButtons()
 			elseif data.plCoun then
 				self.playerCount = data.plCoun
-				self:updateEndTurnButton()
+				self:updateHudButtons()
 			elseif data.agency then
 				local thread = MOAICoroutine.new()
 				thread:run( self.setRemoteCampaign, self, data )
@@ -842,6 +842,11 @@ function stateMultiplayer:stopFMOD()
 	end
 end
 
+function stateMultiplayer:updateHudButtons()
+	self:updateEndTurnButton()
+	self:updateRewindButton()
+end
+
 function stateMultiplayer:updateEndTurnButton()
 	if self.game and self.game.hud and self.gameMode == self.GAME_MODES.BACKSTAB then
 		local btn = self.game.hud._screen.binder.endTurnBtn
@@ -879,6 +884,13 @@ function stateMultiplayer:updateEndTurnButton()
 			tooltip = mui_tooltip(STRINGS.SCREENS.STR_1207454442, STRINGS.SCREENS.STR_610854735, STRINGS.SCREENS.STR_194569200)	-- default tooltip
 		end
 		btn:setTooltip(tooltip)
+	end
+end
+
+function stateMultiplayer:updateRewindButton()
+	if self.game and self.game.hud and self.gameMode == self.GAME_MODES.BACKSTAB then
+		local btn = self.game.hud._screen.binder.rewindBtn
+		btn:setVisible(self.isFocusedPlayer)
 	end
 end
 

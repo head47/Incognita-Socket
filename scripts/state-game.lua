@@ -41,7 +41,7 @@ function game:doAction( actionName, ... )
 			else
 				multiMod.autoYield = true
 			end
-			multiMod:updateEndTurnButton()
+			multiMod:updateHudButtons()
 			return
 		else
 			return multiMod:yield(0)
@@ -84,7 +84,7 @@ end
 
 function game:onPlaybackDone(...)
 	oldOnPlaybackDone(self,...)
-	multiMod:updateEndTurnButton()
+	multiMod:updateHudButtons()
 end
 
 function game:doRemoteAction(action)
@@ -207,7 +207,7 @@ function game:fromOnlineHistory(onlineHistory)
 
 		util.fullGC()
 	else
-		multiMod:updateEndTurnButton()
+		multiMod:updateHudButtons()
 	end
 end
 
