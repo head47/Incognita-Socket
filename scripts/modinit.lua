@@ -41,7 +41,7 @@ local function init( modApi )
 	})
 	
 	multiMod.DEFAULT_PORT = 27017
-	multiMod.MULTI_MOD_VERSION = 2.2
+	multiMod.MULTI_MOD_VERSION = 2.3
 	--multiMod.COMPABILITY_VERSION = 2 -- Moved to load!!!
 	multiMod.WERP_ADRESS = "werp.site"
 	multiMod.WERP_PORT = 31337
@@ -95,8 +95,13 @@ local function load( modApi, options, params )
 	if options["requireCostlyToYield"] then
 		multiMod.requireCostlyToYield = options["requireCostlyToYield"].enabled
 	end
+	if options["playerAgentBinding"] then
+		multiMod.playerAgentBinding = options["playerAgentBinding"].enabled
+	end
 	
-	if not multiMod.requireCostlyToYield and multiMod.gameMode == multiMod.GAME_MODES.BACKSTAB then
+	if multiMod.playerAgentBinding then
+		multiMod.COMPABILITY_VERSION = 2.3
+	elseif not multiMod.requireCostlyToYield and multiMod.gameMode == multiMod.GAME_MODES.BACKSTAB then
 		multiMod.COMPABILITY_VERSION = 2.2
 	elseif multiMod.gameMode ~= multiMod.GAME_MODES.FREEFORALL or (params and params.timeAttack and params.timeAttack > 0) then
 		multiMod.COMPABILITY_VERSION = 2.1
