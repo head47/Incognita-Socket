@@ -121,7 +121,7 @@ function stateMultiplayer:setUserName( name )
 end
 
 function stateMultiplayer:populateAgentList()
-	agentList = {}
+	local agentList = {}
 	
 	local agentdefs = include("sim/unitdefs/agentdefs")
 	for k,v in pairs(agentdefs) do
@@ -136,12 +136,20 @@ function stateMultiplayer:populateAgentList()
 	self.agentList = agentList
 end
 
-function stateMultiplayer:updatePlayerAgentBinding(widget)
-	newAgent = widget.binder.agentChoice:getText()
+function stateMultiplayer:onPABindingChanged(widget)
+	local newAgent = widget.binder.agentChoice:getText()
 	if newAgent ~= "None" then
 		self.playerAgentBindings[widget.binder.txt:getText()] = newAgent
 	else
 		self.playerAgentBindings[widget.binder.txt:getText()] = nil
+	end
+	self.uplink:send({playerAgentBindings=self.playerAgentBindings})
+end
+
+function stateMultiplayer:updatePATooltips()
+	log:write("Got new player-agent bindings:")
+	for k,v in pairs(self.playerAgentBindings) do
+		log:write("playerAgentBindings["..k.."] = '"..v.."'")
 	end
 end
 
@@ -171,14 +179,14 @@ function stateMultiplayer:updatePlayerList()
 		local hostWidget = self.screen.binder.playerList:addItem(  )
 		hostWidget.binder.txt:setText( self.userName )
 		updateAgentBox(self, hostWidget, self.playerAgentBindings[self.userName])
-		hostWidget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.updatePlayerAgentBinding, self, hostWidget)
+		hostWidget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, hostWidget)
 		
 		if self.uplink then
 			for i, client in ipairs( self.uplink.clients ) do
 				local widget = self.screen.binder.playerList:addItem(  )
 				widget.binder.txt:setText( client.userName )
 				updateAgentBox(self, widget, self.playerAgentBindings[client.userName])
-				widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.updatePlayerAgentBinding, self, widget)
+				widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, widget)
 			end
 		end
 		
@@ -241,6 +249,7 @@ function stateMultiplayer:mergeCampaign(tmerge)
 				upgradeHistory = self.upgradeHistory,
 				missionVotes = self.missionVotes,
 				reqSockV = self.COMPABILITY_VERSION,
+				playerAgentBindings = self.playerAgentBindings,
 			})
 end
 
@@ -384,6 +393,10 @@ function stateMultiplayer:receiveData(client,data,line)
 				self.uplink:send({reqOh=true})
 			end
 		elseif self:isClient() then
+			if data.playerAgentBindings then
+				self.playerAgentBindings = data.playerAgentBindings
+				self:updatePATooltips()
+			end
 			if data.focus then
 				self.isFocusedPlayer = true
 				if self.autoYield then
