@@ -60,6 +60,16 @@ local function deepCompare(t1, t2)
 	end
 end
 
+local function has_value(tab, val)
+	for index, value in pairs(tab) do
+		if value == val then
+			return true
+		end
+	end
+
+	return false
+end
+
 ----------------------------------------------------------------
 --   Set up a TCP server and read messages from the clients   --
 ----------------------------------------------------------------
@@ -71,6 +81,7 @@ function stateMultiplayer:onLoad( uplink, ... )
 	self.screen = mui.createScreen( "hud-multiplayer" )
 	self.screen:setPriority( 1000000 )
 	mui.activateScreen( self.screen )
+	self.playerAgentBindings = {}
 	self:updatePlayerList()
 	self.focusedPlayerIndex = 0
 	self.playerCount = 1
@@ -109,18 +120,65 @@ function stateMultiplayer:setUserName( name )
 	self.userName = name
 end
 
+function stateMultiplayer:populateAgentList()
+	agentList = {}
+	
+	local agentdefs = include("sim/unitdefs/agentdefs")
+	for k,v in pairs(agentdefs) do
+		-- I wonder who the empty agent name is
+		if not has_value(agentList, v.name) and v.name ~= "" then
+			agentList[#agentList+1] = v.name
+		end
+	end
+	table.sort(agentList)
+	agentList[#agentList+1] = "Incognita"
+	agentList[#agentList+1] = "None"
+	self.agentList = agentList
+end
+
+function stateMultiplayer:updatePlayerAgentBinding(widget)
+	newAgent = widget.binder.agentChoice:getText()
+	if newAgent ~= "None" then
+		self.playerAgentBindings[widget.binder.txt:getText()] = newAgent
+	else
+		self.playerAgentBindings[widget.binder.txt:getText()] = nil
+	end
+end
+
 function stateMultiplayer:updatePlayerList()
+	if not self.agentList then
+		self:populateAgentList()
+		-- for k,v in pairs(self.agentList) do
+		-- 	log:write("agentList["..k.."] = '"..v.."'")
+		-- end
+	end
+
+	local function updateAgentBox(self, widget, agent)
+		for _,v in ipairs(self.agentList) do
+			widget.binder.agentChoice:addItem(v)
+		end
+		if agent then
+			widget.binder.agentChoice:setValue(agent)
+		else
+			widget.binder.agentChoice:setValue("None")
+		end
+	end
+
 	if self:isHost() and self.campaign then
 		self.screen.binder.playerListHeader:setVisible(true)
 		self.screen.binder.playerList:setVisible(true)
 		self.screen.binder.playerList:clearItems()
 		local hostWidget = self.screen.binder.playerList:addItem(  )
 		hostWidget.binder.txt:setText( self.userName )
+		updateAgentBox(self, hostWidget, self.playerAgentBindings[self.userName])
+		hostWidget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.updatePlayerAgentBinding, self, hostWidget)
 		
 		if self.uplink then
 			for i, client in ipairs( self.uplink.clients ) do
 				local widget = self.screen.binder.playerList:addItem(  )
 				widget.binder.txt:setText( client.userName )
+				updateAgentBox(self, widget, self.playerAgentBindings[client.userName])
+				widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.updatePlayerAgentBinding, self, widget)
 			end
 		end
 		
