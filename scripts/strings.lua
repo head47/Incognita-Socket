@@ -26,6 +26,11 @@ local MULTI_MOD = {
 		NAME = "REQUIRE COSTLY ACTIONS TO YIELD TURN",
 		TIP = "If enabled (default), yielding the turn in Backstab Protocols mode will only be available after taking costly actions, otherwise turn ends instead.\nIf disabled, taking any action will allow yielding the turn.",
 	},
+
+	PLAYER_AGENT_BINDING = {
+		NAME = "1 PLAYER = 1 AGENT",
+		TIP = "If <c:FF8411>enabled</c>, host will be able to assign specific agents to specific players, and other players won't be able to control the assigned agent. In Backstab Protocols mode, this also causes a player whose agent is absent or incapacitated to skip turns automatically.\nIf <c:FF8411>disabled</c> (default), every player will be able to control every agent.",
+	},
 	
 	BUTTON_HOST = "HOST",
 	BUTTON_JOIN = "JOIN",

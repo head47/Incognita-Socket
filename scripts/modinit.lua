@@ -27,6 +27,7 @@ local function init( modApi )
 		}
 	})
 	modApi:addGenerationOption("requireCostlyToYield",STRINGS.MULTI_MOD.REQUIRE_COSTLY_TO_YIELD.NAME,STRINGS.MULTI_MOD.REQUIRE_COSTLY_TO_YIELD.TIP,{noUpdate=true})
+	modApi:addGenerationOption("playerAgentBinding",STRINGS.MULTI_MOD.PLAYER_AGENT_BINDING.NAME,STRINGS.MULTI_MOD.PLAYER_AGENT_BINDING.TIP,{noUpdate=true, enabled=false})
 	modApi:addGenerationOption("votingMode",STRINGS.MULTI_MOD.MISSION_VOTING.NAME,STRINGS.MULTI_MOD.MISSION_VOTING.TIP,
 	{
 		noUpdate=true,
