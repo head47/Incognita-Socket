@@ -144,12 +144,17 @@ function stateMultiplayer:onPABindingChanged(widget)
 		self.playerAgentBindings[widget.binder.txt:getText()] = nil
 	end
 	self.uplink:send({playerAgentBindings=self.playerAgentBindings})
+	self:updatePATooltips()
 end
 
 function stateMultiplayer:updatePATooltips()
-	log:write("Got new player-agent bindings:")
+	log:write("Updating player-agent bindings:")
 	for k,v in pairs(self.playerAgentBindings) do
 		log:write("playerAgentBindings["..k.."] = '"..v.."'")
+	end
+
+	if self.game and self.game.hud and self.game.hud._home_panel then
+		self.game.hud._home_panel:refresh()
 	end
 end
 
@@ -162,6 +167,10 @@ function stateMultiplayer:updatePlayerList()
 	end
 
 	local function updateAgentBox(self, widget, agent)
+		if not self.playerAgentBinding then
+			widget.binder.agentChoice:setVisible(false)
+			return
+		end
 		for _,v in ipairs(self.agentList) do
 			widget.binder.agentChoice:addItem(v)
 		end
@@ -170,6 +179,7 @@ function stateMultiplayer:updatePlayerList()
 		else
 			widget.binder.agentChoice:setValue("None")
 		end
+		widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, widget)
 	end
 
 	if self:isHost() and self.campaign then
@@ -179,14 +189,12 @@ function stateMultiplayer:updatePlayerList()
 		local hostWidget = self.screen.binder.playerList:addItem(  )
 		hostWidget.binder.txt:setText( self.userName )
 		updateAgentBox(self, hostWidget, self.playerAgentBindings[self.userName])
-		hostWidget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, hostWidget)
 		
 		if self.uplink then
 			for i, client in ipairs( self.uplink.clients ) do
 				local widget = self.screen.binder.playerList:addItem(  )
 				widget.binder.txt:setText( client.userName )
 				updateAgentBox(self, widget, self.playerAgentBindings[client.userName])
-				widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, widget)
 			end
 		end
 		
@@ -204,6 +212,7 @@ function stateMultiplayer:startGame( game )
 	assert(self.game == nil)
 	assert(self:getUplink())
 	self.game = game
+	self.game._multiMod = self
 	game:fromOnlineHistory(self.onlineHistory)
 	game.debugstep = nil
 end

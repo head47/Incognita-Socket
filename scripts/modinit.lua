@@ -66,6 +66,7 @@ local function init( modApi )
 	include( scriptPath.."/modal_thread" )
 	include( scriptPath.."/simactions2" )
 	include( scriptPath.."/hud" )
+	include( scriptPath.."/hud-home-panel" )
 end
 
 local function showSetup( stateGenerationOptions, difficulty, options )

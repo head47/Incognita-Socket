@@ -78,6 +78,8 @@ local MULTI_MOD = {
 
 	NOT_YOUR_TURN_TITLE = "Not your turn",
 	NOT_YOUR_TURN_SUBTEXT = "%s is currently taking actions.",
+
+	PLAYED_BY_TOOLTIP_SUFFIX = "\nPlayed by ",
 	
 	PANEL = {
 		TITLE = "Game Title",
