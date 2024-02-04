@@ -71,6 +71,7 @@ function stateMultiplayer:onLoad( uplink, ... )
 	self.screen = mui.createScreen( "hud-multiplayer" )
 	self.screen:setPriority( 1000000 )
 	mui.activateScreen( self.screen )
+	self.playerAgentBindings = {}
 	self:updatePlayerList()
 	self.focusedPlayerIndex = 0
 	self.playerCount = 1
@@ -109,18 +110,179 @@ function stateMultiplayer:setUserName( name )
 	self.userName = name
 end
 
+-- check if thisAgent should be controlled by the same player
+-- that controlledAgent is (like with N-Umi's Spider drone)
+function stateMultiplayer:isControlled(controlledAgent, thisAgent)
+	if not controlledAgent then
+		return false
+	elseif controlledAgent == thisAgent then
+		return true
+	elseif controlledAgent == "N-Umi" and thisAgent == "SPIDER DRONE" then
+		return true
+	else
+		return false
+	end
+end
+
+function stateMultiplayer:controllingPlayers(agentName)
+    local controllingPlayers = {}
+	if self.playerAgentBindings then
+		for player,agent in pairs(self.playerAgentBindings) do
+			if self:isControlled(agent, agentName) then
+				controllingPlayers[#controllingPlayers+1] = player
+			end
+		end
+	end
+	return controllingPlayers
+end
+
+function stateMultiplayer:controllingPlayersTxt(agentName, color)
+	local controllingPlayers = self:controllingPlayers(agentName)
+    if #controllingPlayers > 0 then
+		local controllingPlayersTxt = ""
+		for i,player in ipairs(controllingPlayers) do
+			if color then
+				controllingPlayersTxt = string.format("%s<c:%s>%s</c>", controllingPlayersTxt, color, player)
+			else
+				controllingPlayersTxt = controllingPlayersTxt .. player
+			end
+			if i < #controllingPlayers then
+				controllingPlayersTxt = controllingPlayersTxt .. ", "
+			end
+		end
+        return controllingPlayersTxt
+    else
+        return ""
+    end
+end
+
+function stateMultiplayer:populateAgentList()
+	local agentList = {}
+	
+	local agentdefs = include("sim/unitdefs/agentdefs")
+	for k,v in pairs(agentdefs) do
+		-- I wonder who the empty agent name is
+		if not util.indexOf(agentList, v.name) and v.name ~= "" then
+			agentList[#agentList+1] = v.name
+		end
+	end
+	table.sort(agentList)
+	agentList[#agentList+1] = "Incognita"
+	agentList[#agentList+1] = "None"
+	self.agentList = agentList
+end
+
+function stateMultiplayer:onPABindingChanged(widget)
+	local newAgent = widget.binder.agentChoice:getText()
+	if newAgent ~= "None" then
+		self.playerAgentBindings[widget.binder.txt:getText()] = newAgent
+	else
+		self.playerAgentBindings[widget.binder.txt:getText()] = nil
+	end
+	self.uplink:send({playerAgentBindings=self.playerAgentBindings})
+	self:updatePAinHUD()
+end
+
+function stateMultiplayer:updatePAinHUD()
+	log:write("Updating player-agent bindings:")
+	for k,v in pairs(self.playerAgentBindings) do
+		log:write("playerAgentBindings["..k.."] = '"..v.."'")
+	end
+
+	if self.game and self.game.hud and self.game.hud._home_panel then
+		self.game.hud._home_panel:refresh()
+	end
+	self:updateHudButtons()
+end
+
+function stateMultiplayer:shouldForceYield(userName)
+	if not (self.playerAgentBinding and self.forceYieldAgentless) then
+		return false
+	end
+	if not self.game then
+		return false
+	end
+	local localPlayer = self.game:getLocalPlayer()
+	if not localPlayer or localPlayer:isNPC() then
+		return false
+	end
+	local userName_ = userName
+	if not userName_ then
+		if self:isHost() then	-- host won't autoyield if everyone would autoyield
+			local allWouldYield = true
+			for _, client in ipairs( self.uplink.clients ) do
+				if not self:shouldForceYield(client.userName) then
+					allWouldYield = false
+					break
+				end
+			end
+			if allWouldYield and self:shouldForceYield(self.userName) then
+				log:write("All would forceyield, refusing to forceyield")
+				return false
+			end
+			userName_ = self.userName
+		else
+			userName_ = self.userName
+		end
+	end
+	local agentName = self.playerAgentBindings[userName_]
+	if agentName == nil then
+		log:write(userName_.." will forceyield: no agent bound")
+		return true
+	elseif agentName == "Incognita" then	-- Incognita's always there, always watching
+		log:write(userName_.." will not forceyield: Incognita bound")
+		return false
+	end
+	for _,unit in ipairs(localPlayer:getUnits()) do
+		if self:isControlled(agentName, unit:getName()) then
+			-- maa_inside_mainframe is an MAA Prism interaction, she can act while KO
+			if not unit:isDown() or unit:getTraits().maa_inside_mainframe then
+				log:write(userName_.." will not forceyield: active agent bound")
+				return false
+			end
+		end
+	end
+	log:write(userName_.." will forceyield: no active agent bound")
+	return true
+end
+
 function stateMultiplayer:updatePlayerList()
+	if not self.agentList then
+		self:populateAgentList()
+		-- for k,v in pairs(self.agentList) do
+		-- 	log:write("agentList["..k.."] = '"..v.."'")
+		-- end
+	end
+
+	local function updateAgentBox(self, widget, agent)
+		if not self.playerAgentBinding then
+			widget.binder.agentChoice:setVisible(false)
+			return
+		end
+		for _,v in ipairs(self.agentList) do
+			widget.binder.agentChoice:addItem(v)
+		end
+		if agent then
+			widget.binder.agentChoice:setValue(agent)
+		else
+			widget.binder.agentChoice:setValue("None")
+		end
+		widget.binder.agentChoice.onTextChanged = util.makeDelegate(nil, self.onPABindingChanged, self, widget)
+	end
+
 	if self:isHost() and self.campaign then
 		self.screen.binder.playerListHeader:setVisible(true)
 		self.screen.binder.playerList:setVisible(true)
 		self.screen.binder.playerList:clearItems()
 		local hostWidget = self.screen.binder.playerList:addItem(  )
 		hostWidget.binder.txt:setText( self.userName )
+		updateAgentBox(self, hostWidget, self.playerAgentBindings[self.userName])
 		
 		if self.uplink then
 			for i, client in ipairs( self.uplink.clients ) do
 				local widget = self.screen.binder.playerList:addItem(  )
 				widget.binder.txt:setText( client.userName )
+				updateAgentBox(self, widget, self.playerAgentBindings[client.userName])
 			end
 		end
 		
@@ -183,6 +345,7 @@ function stateMultiplayer:mergeCampaign(tmerge)
 				upgradeHistory = self.upgradeHistory,
 				missionVotes = self.missionVotes,
 				reqSockV = self.COMPABILITY_VERSION,
+				playerAgentBindings = self.playerAgentBindings,
 			})
 end
 
@@ -236,6 +399,7 @@ function stateMultiplayer:onConnectionError( err )
 end
 
 function stateMultiplayer:onClientDisconnect( client, message )
+	self.playerAgentBindings[client.userName] = nil
 	self:updatePlayerList()
 	
 	if self.missionVotes then
@@ -326,9 +490,16 @@ function stateMultiplayer:receiveData(client,data,line)
 				self.uplink:send({reqOh=true})
 			end
 		elseif self:isClient() then
+			if data.playerAgentBindings then
+				self.playerAgentBindings = data.playerAgentBindings
+				self:updatePAinHUD()
+			end
 			if data.focus then
 				self.isFocusedPlayer = true
-				if self.autoYield then
+				if self:shouldForceYield() then
+					self.autoYield = false
+					self:yield(self.focusedPlayerIndex)
+				elseif self.autoYield then
 					self:yield(self.focusedPlayerIndex)
 				end
 				self:updateHudButtons()
@@ -604,10 +775,11 @@ function stateMultiplayer:yield(playerIndex)
 		if nextClient then
 			self.uplink:sendTo({focus = true},nextClient)
 		else
-			if self.autoYield then
+			if self:shouldForceYield() then
+				self.autoYield = false
 				self:yield(self.focusedPlayerIndex)
-			else
-				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
+			elseif self.autoYield then
+				self:yield(self.focusedPlayerIndex)
 			end
 		end
 	else
@@ -684,10 +856,11 @@ function stateMultiplayer:focusFirstPlayer()
 	if client then
 		self.uplink:sendTo({focus = true},client)
 	else
-		if self.autoYield then
+		if self:shouldForceYield() then
+			self.autoYield = false
 			self:yield(self.focusedPlayerIndex)
-		else
-			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
+		elseif self.autoYield then
+			self:yield(self.focusedPlayerIndex)
 		end
 	end
 end
@@ -851,8 +1024,12 @@ function stateMultiplayer:updateEndTurnButton()
 		local suffix = ""
 		local tooltip
 
-		if self.autoYield then
+		btn:setDisabled(false)
+		local shouldForceYield = self:shouldForceYield()
+		if shouldForceYield then
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
+		elseif self.autoYield then
+			suffix = STRINGS.MULTI_MOD.FORCEYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
 			if self:shouldYield() then
@@ -864,7 +1041,14 @@ function stateMultiplayer:updateEndTurnButton()
 			end
 		elseif self.game.simCore and self.game.simCore.currentClientName then
 			btn:setText(string.format(STRINGS.MULTI_MOD.YIELDED_TO, self.game.simCore.currentClientName) .. suffix)
-			if self.autoYield then
+			if shouldForceYield then
+				btn:setDisabled(true)
+				tooltip = mui_tooltip(
+					STRINGS.MULTI_MOD.FORCEYIELD_TOOLTIP_HEADER,
+					string.format(STRINGS.MULTI_MOD.FORCEYIELD_TOOLTIP, self.game.simCore.currentClientName),
+					STRINGS.SCREENS.STR_194569200
+				)
+			elseif self.autoYield then
 				tooltip = mui_tooltip(
 					STRINGS.MULTI_MOD.AUTOYIELDING_TOOLTIP_HEADER,
 					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),

@@ -9,7 +9,7 @@ return {
 	skins =
 	{
 		{
-			name = [[DebugLine]],
+			name = [[DebugLine]],	-- currently unused
 			isVisible = true,
 			noInput = false,
 			anchor = 1,
@@ -85,6 +85,105 @@ return {
 				},
 			},
 		},
+		{
+			name = [[PlayerListItem]],
+			isVisible = true,
+			noInput = false,
+			anchor = 1,
+			rotation = 0,
+			x = 0,
+			y = 0,
+			w = 0,
+			h = 0,
+			sx = 1,
+			sy = 1,
+			ctor = [[group]],
+			children =
+			{
+				{
+					name = [[bg]],
+					isVisible = true,
+					noInput = true,
+					anchor = 1,
+					rotation = 0,
+					x = 0,
+					xpx = true,
+					y = 0,
+					ypx = true,
+					w = 254,
+					wpx = true,
+					h = 24,
+					hpx = true,
+					sx = 1,
+					sy = 1,
+					ctor = [[image]],
+					color =
+					{
+						0,
+						0,
+						0,
+						0.313725501298904,
+					},
+					images =
+					{
+						{
+							file = [[white.png]],
+							name = [[]],
+							color =
+							{
+								0,
+								0,
+								0,
+								0.313725501298904,
+							},
+						},
+					},
+				},
+				{
+					name = [[txt]],
+					isVisible = true,
+					noInput = false,
+					anchor = 1,
+					rotation = 0,
+					x = 0,
+					xpx = true,
+					y = 0,
+					ypx = true,
+					w = 254,
+					wpx = true,
+					h = 24,
+					hpx = true,
+					sx = 1,
+					sy = 1,
+					ctor = [[label]],
+					halign = MOAITextBox.LEFT_JUSTIFY,
+					valign = MOAITextBox.CENTER_JUSTIFY,
+					text_style = [[font1_14_r]],
+				},
+				{
+					name = [[agentChoice]],
+					isVisible = true,
+					noInput = false,
+					anchor = 1,
+					rotation = 0,
+					x = 65,
+					xpx = true,
+					y = 0,
+					ypx = true,
+					w = 120,
+					wpx = true,
+					h = 24,
+					hpx = true,
+					sx = 1,
+					sy = 1,
+					ctor = [[combobox]],
+					arrow_size = 16,
+					text_style = [[font1_14_r]],
+					arrow_image = [[arrow_down.png]],
+					can_edit = false,
+				}
+			},
+		},
 	},
 	
 	widgets =
@@ -135,7 +234,7 @@ return {
 			sx = 1,
 			sy = 1,
 			ctor = [[listbox]],
-			item_template = [[DebugLine]],
+			item_template = [[PlayerListItem]],
 			scrollbar_template = [[listbox_vscroll]],
 			item_spacing = 24,
 			images =

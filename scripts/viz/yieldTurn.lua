@@ -3,7 +3,7 @@ local cdefs = include( "client_defs" )
 local rig_util = include( "gameplay/rig_util" )
 
 local function stopTitleSwipe(hud)
-	if not multiMod.isFocusedPlayer then
+	if not (multiMod.isFocusedPlayer and not multiMod.autoYield and not multiMod:shouldForceYield()) then
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/gameplay/turnswitch_out" )
 	end
     rig_util.waitForAnim(  hud._screen.binder.swipe.binder.anim:getProp(), "pst" )
@@ -16,7 +16,7 @@ local function startTitleSwipe( hud, swipeText,color,sound,showCorpTurn,turn)
 	hud._screen.binder.swipe:setVisible(true)
 	hud._screen.binder.swipe.binder.anim:setColor(color.r, color.g, color.b, color.a )	
 	hud._screen.binder.swipe.binder.anim:setAnim("pre")
-	if multiMod.isFocusedPlayer and not multiMod.autoYield then
+	if multiMod.isFocusedPlayer and not multiMod.autoYield and not multiMod:shouldForceYield() then
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 	else
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/gameplay/turnswitch_in" )
