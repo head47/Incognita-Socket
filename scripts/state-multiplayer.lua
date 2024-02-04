@@ -330,8 +330,6 @@ function stateMultiplayer:receiveData(client,data,line)
 				self.isFocusedPlayer = true
 				if self.autoYield then
 					self:yield(self.focusedPlayerIndex)
-				else
-					MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 				end
 				self:updateHudButtons()
 			elseif data.plCoun then
