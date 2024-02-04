@@ -1015,8 +1015,12 @@ function stateMultiplayer:updateEndTurnButton()
 		local suffix = ""
 		local tooltip
 
-		if self.autoYield or self:shouldForceYield() then
+		btn:setDisabled(false)
+		local shouldForceYield = self:shouldForceYield()
+		if self.autoYield then
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
+		elseif shouldForceYield then
+			suffix = STRINGS.MULTI_MOD.FORCEYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
 			if self:shouldYield() then
@@ -1028,7 +1032,14 @@ function stateMultiplayer:updateEndTurnButton()
 			end
 		elseif self.game.simCore and self.game.simCore.currentClientName then
 			btn:setText(string.format(STRINGS.MULTI_MOD.YIELDED_TO, self.game.simCore.currentClientName) .. suffix)
-			if self.autoYield or self:shouldForceYield() then
+			if shouldForceYield then
+				btn:setDisabled(true)
+				tooltip = mui_tooltip(
+					STRINGS.MULTI_MOD.FORCEYIELD_TOOLTIP_HEADER,
+					string.format(STRINGS.MULTI_MOD.FORCEYIELD_TOOLTIP, self.game.simCore.currentClientName),
+					STRINGS.SCREENS.STR_194569200
+				)
+			elseif self.autoYield then
 				tooltip = mui_tooltip(
 					STRINGS.MULTI_MOD.AUTOYIELDING_TOOLTIP_HEADER,
 					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),

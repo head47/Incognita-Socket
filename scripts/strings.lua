@@ -80,6 +80,9 @@ local MULTI_MOD = {
 	AUTOYIELDING_TOOLTIP_HEADER = "AUTOYIELDING",
 	YIELDED_TO_TOOLTIP_AUTOYIELDING = "%s is currently taking their turn. Turn will be automatically yielded until next turn, press to cancel.",
 	AUTOYIELDING_SUFFIX = " <c:F0FF78>(A/Y)</c>",
+	FORCEYIELDING_SUFFIX = " <c:F0FF78>(F/Y)</c>",
+	FORCEYIELD_TOOLTIP_HEADER = "FORCE YIELDING",
+	FORCEYIELD_TOOLTIP = "%s is currently taking their turn. You have no active agents assigned and will automatically yield at the start of your every turn.",
 
 	NOT_YOUR_TURN_TITLE = "Not your turn",
 	NOT_YOUR_TURN_SUBTEXT = "%s is currently taking actions.",
