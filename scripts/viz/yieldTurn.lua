@@ -3,7 +3,7 @@ local cdefs = include( "client_defs" )
 local rig_util = include( "gameplay/rig_util" )
 
 local function stopTitleSwipe(hud)
-	if not multiMod.isFocusedPlayer then
+	if not (multiMod.isFocusedPlayer and not multiMod.autoYield and not multiMod:shouldForceYield()) then
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/gameplay/turnswitch_out" )
 	end
     rig_util.waitForAnim(  hud._screen.binder.swipe.binder.anim:getProp(), "pst" )
