@@ -235,11 +235,14 @@ function stateMultiplayer:shouldForceYield(userName)
 	end
 	for _,unit in ipairs(localPlayer:getUnits()) do
 		if self:isControlled(agentName, unit:getName()) then
-			log:write(userName_.." will not forceyield: existing agent bound")
-			return false
+			-- maa_inside_mainframe is an MAA Prism interaction, she can act while KO
+			if not unit:isDown() or unit:getTraits().maa_inside_mainframe then
+				log:write(userName_.." will not forceyield: active agent bound")
+				return false
+			end
 		end
 	end
-	log:write(userName_.." will forceyield: no existing agent bound")
+	log:write(userName_.." will forceyield: no active agent bound")
 	return true
 end
 
