@@ -31,11 +31,7 @@ function panel:refreshAgent( unit )
 	end
     if self._hud and self._hud._game and self._hud._game._multiMod then
         local multiMod = self._hud._game._multiMod
-        widget:setTooltip(mui_tooltip(
-            util.toupper(unit:getName()),
-            unit:getUnitData().toolTip .. controllingPlayersTxt(multiMod, unit:getName()),
-            "cycleSelection"
-        ))
+        widget._tooltip._bodyTxt = widget._tooltip._bodyTxt .. controllingPlayersTxt(multiMod, unit:getName())
     end
 end
 
@@ -44,10 +40,6 @@ function panel:refresh()
     local item = self._panel_top.binder.incognitaBtn
     if self._hud and self._hud._game and self._hud._game._multiMod then
         local multiMod = self._hud._game._multiMod
-        item:setTooltip(mui_tooltip(
-            STRINGS.UI.INCOGNITA_NAME,
-            STRINGS.UI.INCOGNITA_TT .. controllingPlayersTxt(multiMod, "Incognita"),
-            "mainframeMode"
-        ))
+        item._tooltip._bodyTxt = item._tooltip._bodyTxt .. controllingPlayersTxt(multiMod, "Incognita")
     end
 end
