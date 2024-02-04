@@ -60,16 +60,6 @@ local function deepCompare(t1, t2)
 	end
 end
 
-local function has_value(tab, val)
-	for index, value in pairs(tab) do
-		if value == val then
-			return true
-		end
-	end
-
-	return false
-end
-
 ----------------------------------------------------------------
 --   Set up a TCP server and read messages from the clients   --
 ----------------------------------------------------------------
@@ -174,7 +164,7 @@ function stateMultiplayer:populateAgentList()
 	local agentdefs = include("sim/unitdefs/agentdefs")
 	for k,v in pairs(agentdefs) do
 		-- I wonder who the empty agent name is
-		if not has_value(agentList, v.name) and v.name ~= "" then
+		if not util.indexOf(agentList, v.name) and v.name ~= "" then
 			agentList[#agentList+1] = v.name
 		end
 	end

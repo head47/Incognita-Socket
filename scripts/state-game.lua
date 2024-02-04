@@ -30,6 +30,13 @@ local function event_error_handler( err )
 	return err
 end
 
+local function getParticipatingUnits(self, actionName, ...)
+	if actionName == "moveAction" then
+		return {self.simCore:getUnit(arg[1])}
+	end
+	return nil
+end
+
 function game:doAction( actionName, ... )
 	local canTakeAction = multiMod:canTakeAction( actionName, ... )
 	local canLocallyTakeAction = multiMod:canTakeLocalAction( actionName, ... )
@@ -56,6 +63,23 @@ function game:doAction( actionName, ... )
 			string.format(STRINGS.MULTI_MOD.NOT_YOUR_TURN_SUBTEXT, self.simCore.currentClientName)
 		)
 		return
+	end
+
+	local participatingUnits = getParticipatingUnits(self, actionName, ...)
+	if participatingUnits then
+		if #participatingUnits == 1 then
+			local unitName = participatingUnits[1]:getName()
+			local controllingPlayers = multiMod:controllingPlayers(unitName)
+			if #controllingPlayers > 0 and not util.indexOf(controllingPlayers, multiMod.userName) then
+				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
+				self.hud:showWarning(
+					STRINGS.MULTI_MOD.NOT_YOUR_UNIT_TITLE,
+					{r=1,g=1,b=1,a=1},
+					string.format(STRINGS.MULTI_MOD.NOT_YOUR_UNIT_SUBTEXT, unitName, table.concat(controllingPlayers, ", "))
+				)
+				return
+			end
+		end
 	end
 	
 	if multiMod:getUplink() and self.syncedChessTimer then
