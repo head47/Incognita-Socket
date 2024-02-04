@@ -7,8 +7,11 @@ local panel = homePanel.panel
 local refreshAgentOld = panel.refreshAgent
 local refreshOld = panel.refresh
 
-local function controllingPlayersTxt(multiMod, agentName)
+local function controllingPlayersTxt(agentName)
     local playerAgentBindings = multiMod.playerAgentBindings
+    if not playerAgentBindings then
+        return ""
+    end
     local controllingPlayers = {}
     for player,agent in pairs(playerAgentBindings) do
         if multiMod:isControlled(agent, agentName) then
@@ -29,17 +32,11 @@ function panel:refreshAgent( unit )
 	if widget == nil then
 		return
 	end
-    if self._hud and self._hud._game and self._hud._game._multiMod then
-        local multiMod = self._hud._game._multiMod
-        widget._tooltip._bodyTxt = widget._tooltip._bodyTxt .. controllingPlayersTxt(multiMod, unit:getName())
-    end
+    widget._tooltip._bodyTxt = widget._tooltip._bodyTxt .. controllingPlayersTxt(unit:getName())
 end
 
 function panel:refresh()
     refreshOld(self)
     local item = self._panel_top.binder.incognitaBtn
-    if self._hud and self._hud._game and self._hud._game._multiMod then
-        local multiMod = self._hud._game._multiMod
-        item._tooltip._bodyTxt = item._tooltip._bodyTxt .. controllingPlayersTxt(multiMod, "Incognita")
-    end
+    item._tooltip._bodyTxt = item._tooltip._bodyTxt .. controllingPlayersTxt("Incognita")
 end

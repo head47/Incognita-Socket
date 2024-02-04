@@ -226,7 +226,6 @@ function stateMultiplayer:startGame( game )
 	assert(self.game == nil)
 	assert(self:getUplink())
 	self.game = game
-	self.game._multiMod = self
 	game:fromOnlineHistory(self.onlineHistory)
 	game.debugstep = nil
 end
