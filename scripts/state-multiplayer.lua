@@ -196,17 +196,20 @@ function stateMultiplayer:updatePAinHUD()
 end
 
 function stateMultiplayer:shouldForceYield(userName)
+	if not (self.playerAgentBinding and self.forceYieldAgentless) then
+		return false
+	end
 	local userName_ = userName
 	if not userName_ then
 		if self:isHost() then	-- host won't autoyield if everyone would autoyield
 			local allWouldYield = true
 			for _, client in ipairs( self.uplink.clients ) do
-				if not self:shouldForceAutoyield(client.userName) then
+				if not self:shouldForceYield(client.userName) then
 					allWouldYield = false
 					break
 				end
 			end
-			if allWouldYield and self:shouldForceAutoyield(self.userName) then
+			if allWouldYield and self:shouldForceYield(self.userName) then
 				log:write("All would forceyield, refusing to forceyield")
 				return false
 			end
@@ -474,7 +477,7 @@ function stateMultiplayer:receiveData(client,data,line)
 			end
 			if data.focus then
 				self.isFocusedPlayer = true
-				if self.autoYield or self:shouldForceAutoyield() then
+				if self.autoYield or self:shouldForceYield() then
 					self:yield(self.focusedPlayerIndex)
 				end
 				self:updateHudButtons()
@@ -750,7 +753,7 @@ function stateMultiplayer:yield(playerIndex)
 		if nextClient then
 			self.uplink:sendTo({focus = true},nextClient)
 		else
-			if self.autoYield or self:shouldForceAutoyield() then
+			if self.autoYield or self:shouldForceYield() then
 				self:yield(self.focusedPlayerIndex)
 			else
 				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
@@ -830,7 +833,7 @@ function stateMultiplayer:focusFirstPlayer()
 	if client then
 		self.uplink:sendTo({focus = true},client)
 	else
-		if self.autoYield or self:shouldForceAutoyield() then
+		if self.autoYield or self:shouldForceYield() then
 			self:yield(self.focusedPlayerIndex)
 		else
 			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
@@ -997,7 +1000,7 @@ function stateMultiplayer:updateEndTurnButton()
 		local suffix = ""
 		local tooltip
 
-		if self.autoYield or self:shouldForceAutoyield() then
+		if self.autoYield or self:shouldForceYield() then
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
@@ -1010,7 +1013,7 @@ function stateMultiplayer:updateEndTurnButton()
 			end
 		elseif self.game.simCore and self.game.simCore.currentClientName then
 			btn:setText(string.format(STRINGS.MULTI_MOD.YIELDED_TO, self.game.simCore.currentClientName) .. suffix)
-			if self.autoYield or self:shouldForceAutoyield() then
+			if self.autoYield or self:shouldForceYield() then
 				tooltip = mui_tooltip(
 					STRINGS.MULTI_MOD.AUTOYIELDING_TOOLTIP_HEADER,
 					string.format(STRINGS.MULTI_MOD.YIELDED_TO_TOOLTIP_AUTOYIELDING, self.game.simCore.currentClientName),

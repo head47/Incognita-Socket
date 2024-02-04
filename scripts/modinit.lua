@@ -28,6 +28,7 @@ local function init( modApi )
 	})
 	modApi:addGenerationOption("requireCostlyToYield",STRINGS.MULTI_MOD.REQUIRE_COSTLY_TO_YIELD.NAME,STRINGS.MULTI_MOD.REQUIRE_COSTLY_TO_YIELD.TIP,{noUpdate=true})
 	modApi:addGenerationOption("playerAgentBinding",STRINGS.MULTI_MOD.PLAYER_AGENT_BINDING.NAME,STRINGS.MULTI_MOD.PLAYER_AGENT_BINDING.TIP,{noUpdate=true, enabled=false})
+	modApi:addGenerationOption("forceYieldAgentless",STRINGS.MULTI_MOD.FORCE_YIELD_AGENTLESS.NAME,STRINGS.MULTI_MOD.FORCE_YIELD_AGENTLESS.TIP, {noUpdate=true, enabled=false})
 	modApi:addGenerationOption("votingMode",STRINGS.MULTI_MOD.MISSION_VOTING.NAME,STRINGS.MULTI_MOD.MISSION_VOTING.TIP,
 	{
 		noUpdate=true,
@@ -98,6 +99,10 @@ local function load( modApi, options, params )
 	end
 	if options["playerAgentBinding"] then
 		multiMod.playerAgentBinding = options["playerAgentBinding"].enabled
+	end
+
+	if options["forceYieldAgentless"] then
+		multiMod.forceYieldAgentless = options["forceYieldAgentless"].enabled
 	end
 	
 	if multiMod.playerAgentBinding then

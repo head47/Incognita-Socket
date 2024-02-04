@@ -29,7 +29,12 @@ local MULTI_MOD = {
 
 	PLAYER_AGENT_BINDING = {
 		NAME = "1 PLAYER = 1 AGENT",
-		TIP = "If <c:FF8411>enabled</c>, host will be able to assign specific agents to specific players, and other players won't be able to control the assigned agent. In Backstab Protocols mode, this also causes a player whose agent is absent or incapacitated to skip turns automatically.\nIf <c:FF8411>disabled</c> (default), every player will be able to control every agent.",
+		TIP = "If enabled, host will be able to assign specific agents to specific players, and other players won't be able to control the assigned agent.\nIf disabled (default), every player will be able to control every agent.",
+	},
+
+	FORCE_YIELD_AGENTLESS = {
+		NAME = "AGENTLESS PLAYERS FORCE YIELD",
+		TIP = "If enabled, players with incapacitated or missing agents will automatically yield every turn, becoming unable to play until they are assigned an active agent.\nDisabled by default.\nApplies only in Backstab Protocols mode with <c:FF8411>1 PLAYER = 1 AGENT</c> enabled.",
 	},
 	
 	BUTTON_HOST = "HOST",
