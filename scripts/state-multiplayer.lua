@@ -755,8 +755,6 @@ function stateMultiplayer:yield(playerIndex)
 		else
 			if self.autoYield or self:shouldForceYield() then
 				self:yield(self.focusedPlayerIndex)
-			else
-				MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 			end
 		end
 	else
@@ -835,8 +833,6 @@ function stateMultiplayer:focusFirstPlayer()
 	else
 		if self.autoYield or self:shouldForceYield() then
 			self:yield(self.focusedPlayerIndex)
-		else
-			MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 		end
 	end
 end
