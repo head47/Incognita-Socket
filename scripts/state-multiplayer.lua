@@ -199,6 +199,13 @@ function stateMultiplayer:shouldForceYield(userName)
 	if not (self.playerAgentBinding and self.forceYieldAgentless) then
 		return false
 	end
+	if not self.game then
+		return false
+	end
+	local localPlayer = self.game:getLocalPlayer()
+	if not localPlayer or localPlayer:isNPC() then
+		return false
+	end
 	local userName_ = userName
 	if not userName_ then
 		if self:isHost() then	-- host won't autoyield if everyone would autoyield
@@ -218,13 +225,22 @@ function stateMultiplayer:shouldForceYield(userName)
 			userName_ = self.userName
 		end
 	end
-	if self.playerAgentBindings[userName_] == nil then
+	local agentName = self.playerAgentBindings[userName_]
+	if agentName == nil then
 		log:write(userName_.." will forceyield: no agent bound")
 		return true
-	else
-		log:write(userName_.." will not forceyield: agent bound")
+	elseif agentName == "Incognita" then	-- Incognita's always there, always watching
+		log:write(userName_.." will not forceyield: Incognita bound")
+		return false
 	end
-	return false
+	for _,unit in ipairs(localPlayer:getUnits()) do
+		if self:isControlled(agentName, unit:getName()) then
+			log:write(userName_.." will not forceyield: existing agent bound")
+			return false
+		end
+	end
+	log:write(userName_.." will forceyield: no existing agent bound")
+	return true
 end
 
 function stateMultiplayer:updatePlayerList()
