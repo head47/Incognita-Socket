@@ -496,7 +496,10 @@ function stateMultiplayer:receiveData(client,data,line)
 			end
 			if data.focus then
 				self.isFocusedPlayer = true
-				if self.autoYield or self:shouldForceYield() then
+				if self:shouldForceYield() then
+					self.autoYield = false
+					self:yield(self.focusedPlayerIndex)
+				elseif self.autoYield then
 					self:yield(self.focusedPlayerIndex)
 				end
 				self:updateHudButtons()
@@ -772,7 +775,10 @@ function stateMultiplayer:yield(playerIndex)
 		if nextClient then
 			self.uplink:sendTo({focus = true},nextClient)
 		else
-			if self.autoYield or self:shouldForceYield() then
+			if self:shouldForceYield() then
+				self.autoYield = false
+				self:yield(self.focusedPlayerIndex)
+			elseif self.autoYield then
 				self:yield(self.focusedPlayerIndex)
 			end
 		end
@@ -850,7 +856,10 @@ function stateMultiplayer:focusFirstPlayer()
 	if client then
 		self.uplink:sendTo({focus = true},client)
 	else
-		if self.autoYield or self:shouldForceYield() then
+		if self:shouldForceYield() then
+			self.autoYield = false
+			self:yield(self.focusedPlayerIndex)
+		elseif self.autoYield then
 			self:yield(self.focusedPlayerIndex)
 		end
 	end
@@ -1017,9 +1026,9 @@ function stateMultiplayer:updateEndTurnButton()
 
 		btn:setDisabled(false)
 		local shouldForceYield = self:shouldForceYield()
-		if self.autoYield then
+		if shouldForceYield then
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
-		elseif shouldForceYield then
+		elseif self.autoYield then
 			suffix = STRINGS.MULTI_MOD.FORCEYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
