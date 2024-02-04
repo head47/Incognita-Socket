@@ -134,6 +134,40 @@ function stateMultiplayer:isControlled(controlledAgent, thisAgent)
 	end
 end
 
+function stateMultiplayer:controllingPlayers(agentName)
+    local controllingPlayers = {}
+	if self.playerAgentBindings then
+		for player,agent in pairs(self.playerAgentBindings) do
+			if self:isControlled(agent, agentName) then
+				controllingPlayers[#controllingPlayers+1] = player
+			end
+		end
+	end
+	log:write("Returning controllingPlayers for "..agentName)
+	log:write(table.concat(controllingPlayers, ", "))
+	return controllingPlayers
+end
+
+function stateMultiplayer:controllingPlayersTxt(agentName, color)
+	local controllingPlayers = self:controllingPlayers(agentName)
+    if #controllingPlayers > 0 then
+		local controllingPlayersTxt = ""
+		for i,player in ipairs(controllingPlayers) do
+			if color then
+				controllingPlayersTxt = string.format("%s<c:%s>%s</c>", controllingPlayersTxt, color, player)
+			else
+				controllingPlayersTxt = controllingPlayersTxt .. player
+			end
+			if i < #controllingPlayers then
+				controllingPlayersTxt = controllingPlayersTxt .. ", "
+			end
+		end
+        return controllingPlayersTxt
+    else
+        return ""
+    end
+end
+
 function stateMultiplayer:populateAgentList()
 	local agentList = {}
 	
