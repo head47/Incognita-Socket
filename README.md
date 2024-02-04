@@ -8,7 +8,7 @@ The eventual goal for these changes is to merge them into upstream, but for the 
 
 Feature suggestions, bug reports, and especially pull requests are welcome! I'm still figuring out most of IS's code, and so any help would be greatly appreciated.
 
-You can reach me at the II modding Discord server: https://discord.gg/dBUCcfcbdk
+You can reach me at the II Discord server: https://discord.gg/dBUCcfcbdk
 
 ## Changes
 
