@@ -133,8 +133,6 @@ function stateMultiplayer:controllingPlayers(agentName)
 			end
 		end
 	end
-	log:write("Returning controllingPlayers for "..agentName)
-	log:write(table.concat(controllingPlayers, ", "))
 	return controllingPlayers
 end
 
