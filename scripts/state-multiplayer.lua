@@ -120,6 +120,20 @@ function stateMultiplayer:setUserName( name )
 	self.userName = name
 end
 
+-- check if thisAgent should be controlled by the same player
+-- that controlledAgent is (like with N-Umi's Spider drone)
+function stateMultiplayer:isControlled(controlledAgent, thisAgent)
+	if not controlledAgent then
+		return false
+	elseif controlledAgent == thisAgent then
+		return true
+	elseif controlledAgent == "N-Umi" and thisAgent == "SPIDER DRONE" then
+		return true
+	else
+		return false
+	end
+end
+
 function stateMultiplayer:populateAgentList()
 	local agentList = {}
 	
