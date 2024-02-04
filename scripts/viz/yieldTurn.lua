@@ -16,7 +16,7 @@ local function startTitleSwipe( hud, swipeText,color,sound,showCorpTurn,turn)
 	hud._screen.binder.swipe:setVisible(true)
 	hud._screen.binder.swipe.binder.anim:setColor(color.r, color.g, color.b, color.a )	
 	hud._screen.binder.swipe.binder.anim:setAnim("pre")
-	if multiMod.isFocusedPlayer then
+	if multiMod.isFocusedPlayer and not multiMod.autoYield then
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
 	else
 		MOAIFmodDesigner.playSound( "SpySociety/HUD/gameplay/turnswitch_in" )
