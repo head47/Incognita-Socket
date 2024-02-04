@@ -1027,9 +1027,9 @@ function stateMultiplayer:updateEndTurnButton()
 		btn:setDisabled(false)
 		local shouldForceYield = self:shouldForceYield()
 		if shouldForceYield then
-			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
-		elseif self.autoYield then
 			suffix = STRINGS.MULTI_MOD.FORCEYIELDING_SUFFIX
+		elseif self.autoYield then
+			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
 			if self:shouldYield() then
