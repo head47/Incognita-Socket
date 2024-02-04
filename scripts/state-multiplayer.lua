@@ -347,6 +347,7 @@ function stateMultiplayer:onConnectionError( err )
 end
 
 function stateMultiplayer:onClientDisconnect( client, message )
+	self.playerAgentBindings[client.userName] = nil
 	self:updatePlayerList()
 	
 	if self.missionVotes then
