@@ -61,6 +61,7 @@ local function getParticipatingUnit(self, actionName, ...)
 end
 
 function game:doAction( actionName, ... )
+	-- log:write("Received action: "..actionName)
 	local canTakeAction = multiMod:canTakeAction( actionName, ... )
 	local canLocallyTakeAction = multiMod:canTakeLocalAction( actionName, ... )
 	
@@ -240,6 +241,11 @@ function game:fromOnlineHistory(onlineHistory)
 		
 		if focusAction then
 			table.insert( self.simHistory, focusAction )
+		end
+
+		if multiMod.gameMode == multiMod.GAME_MODES.BACKSTAB and self.simHistoryIdx == 0 then
+			local level = include( "sim/level" )
+			self:dispatchScriptEvent( level.EV_UI_INITIALIZED )
 		end
 
 		self.boardRig = boardrig( self.layers, self.levelData, self )
