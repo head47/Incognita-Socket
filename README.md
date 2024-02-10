@@ -20,3 +20,5 @@ Compared to Cyberboy2000's version:
 * If you try to act while it is another player's turn, a "Not your turn" warning will be displayed
 * End Turn button now changes its tooltip depending on its status
 * Option: no longer require performing costly actions to yield turn in BP. This allows for a more relaxed co-op experience where "turn juggling" is acceptable
+* UI events on starting a mission play out correctly: Central's first mission dialogue, objectives popup, etc.
+* Fix [ITB Agents](https://steamcommunity.com/sharedfiles/filedetails/?id=2861508670)'s Gana's deployment in Backstab Protocols mode
