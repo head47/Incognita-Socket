@@ -50,7 +50,9 @@ local function wait( event, evType, evData, boardRig, hud, vizThread )
 	local turn = math.ceil( (boardRig:getSim():getTurnCount() + 1) / 2)
 
 	local color
-	if multiMod.isFocusedPlayer then
+	if multiMod:isCounterintel(evData.name) then
+		color = {r=255/255, g=100/255, b=100/255, a=1}
+	elseif multiMod.isFocusedPlayer then
 		color = {r=244/255, g=255/255, b=120/255, a=1}
 	else
 		color = {r=140/255, g=255/255, b=255/255, a=1}

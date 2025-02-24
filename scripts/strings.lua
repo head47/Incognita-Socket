@@ -91,6 +91,8 @@ local MULTI_MOD = {
 	NOT_YOUR_UNIT_SUBTEXT = "%s is played by %s",
 
 	PLAYED_BY_TOOLTIP_SUFFIX = "\nPlayed by ",
+
+	SET_INTEREST_WITHIN_MOVE_SUBTEXT = "You may only set interest points within moving range",
 	
 	PANEL = {
 		TITLE = "Game Title",

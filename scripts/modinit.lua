@@ -68,6 +68,9 @@ local function init( modApi )
 	include( scriptPath.."/simactions2" )
 	include( scriptPath.."/hud" )
 	include( scriptPath.."/hud-home-panel" )
+	include(scriptPath.."/camhandler")
+	include(scriptPath.."/cellrig")
+	include(scriptPath.."/selection")
 end
 
 local function showSetup( stateGenerationOptions, difficulty, options )

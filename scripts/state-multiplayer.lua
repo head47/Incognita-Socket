@@ -18,6 +18,7 @@ local simdefs = include( "sim/simdefs" )
 local simquery = include( "sim/simquery" )
 local viz_manager = include( "gameplay/viz_manager" )
 local level = include( "sim/level" )
+local rand = include("modules/rand")
 
 local stateMultiplayer = {
 	MISSION_VOTING = {
@@ -124,6 +125,21 @@ function stateMultiplayer:isControlled(controlledAgent, thisAgent)
 	end
 end
 
+function stateMultiplayer:isCounterintel(userName)
+	if userName == nil then
+		if self.userName then
+			userName = self.userName
+		else
+			return false
+		end
+	end
+	if self.playerAgentBindings and self.playerAgentBindings[userName] == "Counterintel" then
+		return true
+	else
+		return false
+	end
+end
+
 function stateMultiplayer:controllingPlayers(agentName)
     local controllingPlayers = {}
 	if self.playerAgentBindings then
@@ -168,6 +184,7 @@ function stateMultiplayer:populateAgentList()
 	end
 	table.sort(agentList)
 	agentList[#agentList+1] = "Incognita"
+	agentList[#agentList+1] = "Counterintel"
 	agentList[#agentList+1] = "None"
 	self.agentList = agentList
 end
@@ -180,15 +197,53 @@ function stateMultiplayer:onPABindingChanged(widget)
 		self.playerAgentBindings[widget.binder.txt:getText()] = nil
 	end
 	self.uplink:send({playerAgentBindings=self.playerAgentBindings})
-	self:updatePAinHUD()
+	self:updatePA()
 end
 
-function stateMultiplayer:updatePAinHUD()
+function stateMultiplayer:selectRandomGuard()
+	local guards = {}
+	for _, unit in pairs(self.game.simCore:getAllUnits()) do
+		if unit:isNPC() and unit:getTraits().isAgent then
+			guards[#guards+1] = unit
+		end
+	end
+	if #guards > 0 then
+		local selectedUnit = guards[math.random(#guards)]
+		self.game.hud._selection:selectUnit(selectedUnit)
+	end
+end
+
+function stateMultiplayer:updatePA()
 	log:write("Updating player-agent bindings:")
 	for k,v in pairs(self.playerAgentBindings) do
 		log:write("playerAgentBindings["..k.."] = '"..v.."'")
 	end
 
+	if self.game then
+		if self:isCounterintel() then
+			self.game:setLocalPlayer(self.game.simCore:getPlayers()[1])
+			for unitID, unit in pairs(self.game.simCore._units) do
+				if unit:isPC() then
+					self.game.shadow_map:removeLOS( unitID )	-- otherwise agent LOS stay (for some reason), giving away their locations
+				end
+			end
+			if self.game.hud._selection.lastSelectedUnitID == nil then
+				stateMultiplayer:selectRandomGuard()
+			else
+				local lastSelectedUnit = self.game.simCore:getUnit(self.game.hud._selection.lastSelectedUnitID)
+				if not lastSelectedUnit or not lastSelectedUnit:isNPC() then
+					stateMultiplayer:selectRandomGuard()
+				end
+			end
+		else
+			self.game:setLocalPlayer(self.game.simCore:getPlayers()[2])
+		end
+	end
+
+	self:updatePAinHUD()
+end
+
+function stateMultiplayer:updatePAinHUD()
 	if self.game and self.game.hud and self.game.hud._home_panel then
 		self.game.hud._home_panel:refresh()
 	end
@@ -203,7 +258,10 @@ function stateMultiplayer:shouldForceYield(userName)
 		return false
 	end
 	local localPlayer = self.game:getLocalPlayer()
-	if not localPlayer or localPlayer:isNPC() then
+	if not localPlayer then
+		return false
+	end
+	if self:isCounterintel(userName) then
 		return false
 	end
 	local userName_ = userName
@@ -302,6 +360,7 @@ function stateMultiplayer:startGame( game )
 	self.game = game
 	game:fromOnlineHistory(self.onlineHistory)
 	game.debugstep = nil
+	self:updatePA()
 end
 
 function stateMultiplayer:endGame( )
@@ -492,7 +551,7 @@ function stateMultiplayer:receiveData(client,data,line)
 		elseif self:isClient() then
 			if data.playerAgentBindings then
 				self.playerAgentBindings = data.playerAgentBindings
-				self:updatePAinHUD()
+				self:updatePA()
 			end
 			if data.focus then
 				self.isFocusedPlayer = true
@@ -732,19 +791,102 @@ function stateMultiplayer:canTakeLocalAction( actionName, ... )
 	return true
 end
 
+function stateMultiplayer:pickNextPlayer(playerIndex, wasCounterintel)
+	local nextClient
+	if wasCounterintel then
+		for i, client in ipairs(self.uplink.clients) do
+			if
+				client.clientIndex > playerIndex and
+				self:isCounterintel(client.userName) and
+				not (nextClient and client.clientIndex > nextClient.clientIndex)
+			then
+				nextClient = client
+			end
+		end
+		if nextClient then
+			return nextClient
+		end
+		if self:isCounterintel() and playerIndex ~= 0 then
+			return nil
+		end
+		for i, client in ipairs(self.uplink.clients) do
+			if
+				client.clientIndex < playerIndex and
+				self:isCounterintel(client.userName) and
+				not (nextClient and client.clientIndex > nextClient.clientIndex)
+			then
+				nextClient = client
+			end
+		end
+		if nextClient then
+			return nextClient
+		end
+	end
+	for i, client in ipairs(self.uplink.clients) do
+		if
+			client.clientIndex > playerIndex and
+			not self:isCounterintel(client.userName) and
+			not (nextClient and client.clientIndex > nextClient.clientIndex)
+		then
+			nextClient = client
+		end
+	end
+	if nextClient then
+		return nextClient
+	end
+	if not self:isCounterintel() then
+		return nil
+	end
+	for i, client in ipairs(self.uplink.clients) do
+		if
+			client.clientIndex < playerIndex and
+			not self:isCounterintel(client.userName) and
+			not (nextClient and client.clientIndex > nextClient.clientIndex)
+		then
+			nextClient = client
+		end
+	end
+	if nextClient then
+		return nextClient
+	end
+end
+
 function stateMultiplayer:yield(playerIndex)
+	log:write("yield(%s)", tostring(playerIndex))
 	self.isFocusedPlayer = false
 	
 	if self:isHost() then
 		local nextClient
 		local clientName
+		local previousUserName
 		local previousFocusedPlayerIndex = self.focusedPlayerIndex or 0
+		local endedTurn
 		
-		for i, client in ipairs(self.uplink.clients) do
-			if client.clientIndex > playerIndex and not (nextClient and client.clientIndex > nextClient.clientIndex)then
-				nextClient = client
+		if playerIndex == 0 then
+			previousUserName = self.userName
+		else
+			previousUserName = self.uplink.clients[playerIndex].userName
+		end
+		
+		if not self:shouldYield(self:isCounterintel(previousUserName)) then
+			endedTurn = true
+			local endTurnAction = { name = "endTurnAction" }
+		
+			self:sendAction( endTurnAction )
+			if self.game then
+				self.game:doRemoteAction( endTurnAction )
 			end
 		end
+
+		local nextCounterintel = self:isCounterintel(previousUserName)
+		log:write("isCounterintel(previousUserName) = %s", tostring(nextCounterintel))
+		if endedTurn then
+			log:write("Turn just ended, nextCounterintel = true")
+			nextCounterintel = true
+		else
+			log:write("Turn didn't just end, nextCounterintel is unchanged (last action was %s)", self.onlineHistory[#self.onlineHistory].name)
+		end
+		nextClient = self:pickNextPlayer(playerIndex, nextCounterintel)
 		
 		if nextClient then
 			self.focusedPlayerIndex = nextClient.clientIndex
@@ -754,17 +896,11 @@ function stateMultiplayer:yield(playerIndex)
 			self.isFocusedPlayer = true
 			clientName = self.userName
 		end
+		log:write("Next player is %s", clientName)
 	
 		local action = { name = "yieldTurnAction", clientName, previousFocusedPlayerIndex, self.focusedPlayerIndex }
-		
-		if not self:shouldYield() then
+		if endedTurn then
 			action.costly = true
-			local endTurnAction = { name = "endTurnAction" }
-		
-			self:sendAction( endTurnAction )
-			if self.game then
-				self.game:doRemoteAction( endTurnAction )
-			end
 		end
 		
 		self:sendAction( action )
@@ -788,12 +924,15 @@ function stateMultiplayer:yield(playerIndex)
 	end
 end
 
-function stateMultiplayer:shouldYield()
+function stateMultiplayer:shouldYield(isCounterintel)
 	if not self.onlineHistory or self.gameMode ~= self.GAME_MODES.BACKSTAB then
 		return false
 	end
 
-	local yieldCount = self.playerCount - 1
+	if isCounterintel then
+		return true
+	end
+	local yieldCount = self.playerCount - 1 - #(self:controllingPlayers("Counterintel"))
 	
 	for i = #self.onlineHistory, 1, -1 do
 		local pastAction = self.onlineHistory[i]
@@ -804,7 +943,10 @@ function stateMultiplayer:shouldYield()
 			break
 		end
 		
-		if pastAction.name == "yieldTurnAction" and ( pastAction[2] == 0 or self.uplink:findClient( pastAction[2] ) ) then
+		if pastAction.name == "yieldTurnAction" and (
+			(pastAction[2] == 0 and not self:isCounterintel()) or
+			(self.uplink:findClient(pastAction[2]) and not self.isCounterintel(self.uplink:findClient(pastAction[2]).userName))
+		) then
 			yieldCount = yieldCount - 1
 			if yieldCount <= 0 then
 				return false
@@ -831,14 +973,28 @@ function stateMultiplayer:focusFirstPlayer()
 	if self.gameMode ~= self.GAME_MODES.BACKSTAB then
 		return
 	end
-	
-	local r = math.random(1,self.playerCount)
-	log:write(string.format("Player %d goes first",r))
-	local client = self.uplink.clients[r]
+
+	local counterintelPlayers = {}
+	local client
+	for _, client in ipairs(self.uplink.clients) do
+		if self:isCounterintel(client.userName) then
+			counterintelPlayers[#counterintelPlayers+1] = client
+		end
+	end
+	if #counterintelPlayers ~= 0 then
+		local r = math.random(1,#counterintelPlayers)
+		client = counterintelPlayers[r]
+	elseif self:isCounterintel() then
+		client = nil
+	else	-- no counterintel -> anyone else goes first
+		local r = math.random(1,self.playerCount)
+		log:write(string.format("Player %d goes first",r))
+		client = self.uplink.clients[r]
+	end
 
 	if client then
 		self.isFocusedPlayer = false
-		self.focusedPlayerIndex = self.uplink.clients[r].clientIndex
+		self.focusedPlayerIndex = client.clientIndex
 		clientName = client.userName
 	else
 		self.focusedPlayerIndex = 0
@@ -1032,7 +1188,7 @@ function stateMultiplayer:updateEndTurnButton()
 			suffix = STRINGS.MULTI_MOD.AUTOYIELDING_SUFFIX
 		end
 		if self.isFocusedPlayer then
-			if self:shouldYield() then
+			if self:shouldYield(self:isCounterintel()) then
 				btn:setText(STRINGS.MULTI_MOD.YIELD .. suffix)
 				tooltip = mui_tooltip(STRINGS.MULTI_MOD.YIELD_TOOLTIP_HEADER, STRINGS.MULTI_MOD.YIELD_TOOLTIP, STRINGS.SCREENS.STR_194569200)
 			else
@@ -1072,7 +1228,7 @@ end
 function stateMultiplayer:updateRewindButton()
 	if self.game and self.game.hud and self.gameMode == self.GAME_MODES.BACKSTAB then
 		local btn = self.game.hud._screen.binder.rewindBtn
-		btn:setDisabled(not self.isFocusedPlayer)
+		btn:setDisabled(self:isCounterintel() or not self.isFocusedPlayer)
 	end
 end
 
