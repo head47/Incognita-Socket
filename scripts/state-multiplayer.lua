@@ -899,7 +899,10 @@ function stateMultiplayer:yield(playerIndex)
 		log:write("Next player is %s", clientName)
 	
 		local action = { name = "yieldTurnAction", clientName, previousFocusedPlayerIndex, self.focusedPlayerIndex }
-		if endedTurn then
+		if
+			endedTurn
+			or nextCounterintel and not self:isCounterintel(clientName)	-- counterintel turn ended
+		then
 			action.costly = true
 		end
 		
@@ -930,23 +933,31 @@ function stateMultiplayer:shouldYield(isCounterintel)
 	end
 
 	if isCounterintel then
+		log:write("isCounterintel = true, should yield")
 		return true
 	end
 	local yieldCount = self.playerCount - 1 - #(self:controllingPlayers("Counterintel"))
+	log:write("yieldCount = %s", tostring(yieldCount))
 	
 	for i = #self.onlineHistory, 1, -1 do
 		local pastAction = self.onlineHistory[i]
 		if not self.requireCostlyToYield and pastAction.name ~= "yieldTurnAction" then
+			log:write("Encountered non-yield: %s", pastAction.name)
 			break
 		end
 		if pastAction.name == "endTurnAction" or pastAction.name == "moveAction" or pastAction.costly then
 			break
 		end
 		
-		if pastAction.name == "yieldTurnAction" and (
-			(pastAction[2] == 0 and not self:isCounterintel()) or
-			(self.uplink:findClient(pastAction[2]) and not self.isCounterintel(self.uplink:findClient(pastAction[2]).userName))
-		) then
+		if
+			pastAction.name == "yieldTurnAction"
+			and (
+				pastAction[2] == 0
+				or not self:isHost()	-- clients don't know whether other clients actually exist, this is only used to show HUD button label
+				or self.uplink:findClient(pastAction[2])	-- servers use a more robust logic
+			)
+		then
+			log:write("Encountered yield, decrementing yieldCount")
 			yieldCount = yieldCount - 1
 			if yieldCount <= 0 then
 				return false
@@ -954,6 +965,7 @@ function stateMultiplayer:shouldYield(isCounterintel)
 		end
 	end
 	
+	log:write("yieldCount = %s", tostring(yieldCount))
 	return yieldCount > 0
 end
 
