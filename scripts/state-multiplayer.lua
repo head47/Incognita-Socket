@@ -794,32 +794,37 @@ end
 function stateMultiplayer:pickNextPlayer(playerIndex, wasCounterintel)
 	local nextClient
 	if wasCounterintel then
-		for i, client in ipairs(self.uplink.clients) do
-			if
-				client.clientIndex > playerIndex and
-				self:isCounterintel(client.userName) and
-				not (nextClient and client.clientIndex > nextClient.clientIndex)
-			then
-				nextClient = client
+		if
+			playerIndex == 0 and not self:isCounterintel()
+			or playerIndex ~= 0 and not self:isCounterintel(self.uplink.clients[playerIndex].userName)
+		then	-- counterintel turn just started, pick first CI player
+			if self:isCounterintel() then
+				return nil
 			end
-		end
-		if nextClient then
-			return nextClient
-		end
-		if self:isCounterintel() and playerIndex ~= 0 then
-			return nil
-		end
-		for i, client in ipairs(self.uplink.clients) do
-			if
-				client.clientIndex < playerIndex and
-				self:isCounterintel(client.userName) and
-				not (nextClient and client.clientIndex > nextClient.clientIndex)
-			then
-				nextClient = client
+			for i, client in ipairs(self.uplink.clients) do
+				if
+					self:isCounterintel(client.userName) and
+					not (nextClient and client.clientIndex > nextClient.clientIndex)
+				then
+					nextClient = client
+				end
 			end
-		end
-		if nextClient then
-			return nextClient
+			if nextClient then
+				return nextClient
+			end
+		else	-- pick next CI player
+			for i, client in ipairs(self.uplink.clients) do
+				if
+					client.clientIndex > playerIndex and
+					self:isCounterintel(client.userName) and
+					not (nextClient and client.clientIndex > nextClient.clientIndex)
+				then
+					nextClient = client
+				end
+			end
+			if nextClient then
+				return nextClient
+			end
 		end
 	end
 	for i, client in ipairs(self.uplink.clients) do
@@ -988,17 +993,15 @@ function stateMultiplayer:focusFirstPlayer()
 
 	local counterintelPlayers = {}
 	local client
-	for _, client in ipairs(self.uplink.clients) do
+	for _, c in ipairs(self.uplink.clients) do
 		if self:isCounterintel(client.userName) then
-			counterintelPlayers[#counterintelPlayers+1] = client
+			client = c
+			break
 		end
 	end
-	if #counterintelPlayers ~= 0 then
-		local r = math.random(1,#counterintelPlayers)
-		client = counterintelPlayers[r]
-	elseif self:isCounterintel() then
+	if self:isCounterintel() then
 		client = nil
-	else	-- no counterintel -> anyone else goes first
+	elseif client == nil then	-- no counterintel -> anyone else goes first
 		local r = math.random(1,self.playerCount)
 		log:write(string.format("Player %d goes first",r))
 		client = self.uplink.clients[r]
