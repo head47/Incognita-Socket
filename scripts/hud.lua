@@ -126,10 +126,19 @@ function hud:onInputEvent(event)
 				and self._mouseDownX
 				and mathutil.distSqr2d( event.wx, event.wy, self._mouseDownX, self._mouseDownY ) < 512
 			then
-				local selUnitOld = self._selection.selectedUnit
-				_onInputEvent(self, event)
-				if self._selection.selectedUnit ~= selUnitOld then
-					multiMod:yield(multiMod.focusedPlayerIndex)
+				if not multiMod:hasYielded() then
+					local selUnitOld = self._selection.selectedUnit
+					_onInputEvent(self, event)
+					if self._selection.selectedUnit ~= selUnitOld then
+						multiMod:yield(multiMod.focusedPlayerIndex)
+					end
+				else
+					MOAIFmodDesigner.playSound( "SpySociety/HUD/voice/level1/alarmvoice_warning" )
+					self:showWarning(
+						STRINGS.MULTI_MOD.NOT_YOUR_TURN_TITLE,
+						{r=1,g=1,b=1,a=1},
+						string.format(STRINGS.MULTI_MOD.NOT_YOUR_TURN_SUBTEXT, sim.currentClientName)
+					)
 				end
 			elseif event.button == mui_defs.MB_Right then
 				if sim then
@@ -159,7 +168,9 @@ function hud:onInputEvent(event)
 								if moveTable then
 									if pathCost <= selectedUnit:getMP() then
 										self._game:doAction( "cheatAction", "simCreateInterest", selectedUnitID, x, y )
-										multiMod:yield(multiMod.focusedPlayerIndex)
+										if not multiMod:hasYielded() then
+											multiMod:yield(multiMod.focusedPlayerIndex)
+										end
 										MOAIFmodDesigner.playSound( cdefs.SOUND_HUD_GAME_CONFIRM )
 									else
 										self:showWarning( STRINGS.UI.WARNING_NO_AP, {r=1,g=1,b=1,a=1}, STRINGS.MULTI_MOD.SET_INTEREST_WITHIN_MOVE_SUBTEXT )
